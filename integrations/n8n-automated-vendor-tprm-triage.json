@@ -1,0 +1,122 @@
+{
+  "name": "Automated Vendor SOC 2 & Third-Party Risk (TPRM) Triage Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🛡️ Automated Vendor Security & SOC 2 Triage (GRC / TPRM)\nWhen an employee requests a new SaaS tool via form or webhook, this workflow automatically audits the vendor's **Trust Center**, **SOC 2 / ISO 27001 / HIPAA certifications**, **AI sub-processors**, **SPF/DMARC hardening**, and **Status Page**.\n\n- Actor: [Trust Center, SOC 2 & IAM Auditor](https://apify.com/algernontechnologies/trust-center-iam-auditor)\n- Replace `YOUR_APIFY_API_TOKEN` in the HTTP Request node to activate.",
+        "height": 230,
+        "width": 520
+      },
+      "id": "b1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [220, 80]
+    },
+    {
+      "parameters": {
+        "formTitle": "Request New SaaS Vendor Security Review",
+        "formDescription": "Enter the vendor domain (e.g. linear.app, vanta.com) for instant automated SOC 2, Sub-processor & DNS security pre-screening.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Vendor Domain",
+              "fieldType": "text",
+              "requiredField": true,
+              "placeholder": "linear.app"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Vendor Review Request Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [240, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/AlgernonTechnologies~trust-center-iam-auditor/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "YOUR_APIFY_API_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"domains\": [{{ JSON.stringify($json['Vendor Domain']) }}],\n  \"check_status_page\": true\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "b1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Audit Vendor via Apify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "score-check",
+              "leftValue": "={{ $json.trust_score }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Is Low Risk (Score >= 80)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [760, 380]
+    }
+  ],
+  "connections": {
+    "Vendor Review Request Form": {
+      "main": [
+        [
+          {
+            "node": "Audit Vendor via Apify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Vendor via Apify": {
+      "main": [
+        [
+          {
+            "node": "Is Low Risk (Score >= 80)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

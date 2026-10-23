@@ -1,0 +1,16 @@
+{
+  "actorSpecification": 1,
+  "name": "trust-center-iam-auditor",
+  "title": "Trust Center, SOC 2 Compliance & IAM Technographic Auditor",
+  "description": "Audits company Trust Centers (Vanta, Drata, SafeBase, Conveyor), extracts SOC 2 / ISO 27001 / HIPAA certifications, sub-processors, status page health, and DNS/SSO Identity Providers (Okta, Entra, Google Workspace). Built for GRC/TPRM teams and Clay.com B2B enrichment.",
+  "version": "0.1",
+  "meta": {
+    "templateId": "python-playwright"
+  },
+  "input": "./input_schema.json",
+  "output": "./output_schema.json",
+  "dockerfile": "../Dockerfile",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  }
+}

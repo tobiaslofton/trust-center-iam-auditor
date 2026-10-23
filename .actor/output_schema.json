@@ -1,0 +1,14 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Trust Center & IAM Compliance Audit Output",
+  "description": "Audit records containing Trust Center platform, SOC 2 / ISO 27001 / HIPAA certifications, DNS Identity Providers, sub-processors, status page health, and GRC/Sales summaries.",
+  "type": "object",
+  "properties": {
+    "dataset": {
+      "type": "string",
+      "title": "Vendor Compliance & IAM Audit Results",
+      "description": "Dataset containing all audited vendor domains and their security/technographic fields.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    }
+  }
+}

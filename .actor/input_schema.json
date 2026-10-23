@@ -1,0 +1,45 @@
+{
+  "title": "Trust Center & IAM Compliance Auditor Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "domains": {
+      "title": "Target Domains or URLs",
+      "type": "array",
+      "description": "List of company domains or URLs to audit (e.g., ['vanta.com', 'drata.com', 'stripe.com']).",
+      "editor": "stringList",
+      "default": [
+        "vanta.com",
+        "drata.com",
+        "linear.app"
+      ],
+      "prefill": [
+        "vanta.com",
+        "drata.com",
+        "linear.app"
+      ]
+    },
+    "gemini_api_key": {
+      "title": "Gemini API Key (Optional - BYOK)",
+      "type": "string",
+      "description": "Optional Google Gemini API key for AI-enhanced GRC risk synthesis and sales intent scoring. If omitted, deterministic DNS + Trust Center extraction still runs in full.",
+      "editor": "textfield",
+      "isSecret": true
+    },
+    "check_status_page": {
+      "title": "Check Status Page Health",
+      "type": "boolean",
+      "description": "Probe status.<domain> to detect status page provider and current operational health.",
+      "default": true
+    },
+    "max_concurrency": {
+      "title": "Max Concurrent Domain Audits",
+      "type": "integer",
+      "description": "Number of domains to audit in parallel.",
+      "default": 5,
+      "minimum": 1,
+      "maximum": 20
+    }
+  },
+  "required": ["domains"]
+}

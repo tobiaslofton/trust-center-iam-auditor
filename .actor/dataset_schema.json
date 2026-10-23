@@ -1,0 +1,63 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "domain": { "type": "string", "title": "Domain" },
+      "audited_at": { "type": "string", "title": "Audited At (ISO UTC)" },
+      "risk_tier": { "type": "string", "title": "Risk Tier" },
+      "trust_score": { "type": "integer", "title": "Trust Score (0-100)" },
+      "trust_center_platform": { "type": "string", "title": "Trust Center Platform" },
+      "trust_center_url": { "type": "string", "title": "Trust Center URL" },
+      "certifications": { "type": "array", "items": { "type": "string" }, "title": "Certifications" },
+      "certifications_csv": { "type": "string", "title": "Certifications (CSV)" },
+      "identity_providers": { "type": "array", "items": { "type": "string" }, "title": "Identity & Security Stack" },
+      "identity_providers_csv": { "type": "string", "title": "Identity & Security Stack (CSV)" },
+      "subprocessors": { "type": "array", "items": { "type": "string" }, "title": "Sub-processors" },
+      "subprocessors_csv": { "type": "string", "title": "Sub-processors (CSV)" },
+      "spf_enabled": { "type": "boolean", "title": "SPF Enabled" },
+      "dmarc_enabled": { "type": "boolean", "title": "DMARC Enabled" },
+      "status_page_url": { "type": "string", "title": "Status Page URL" },
+      "status_page_indicator": { "type": "string", "title": "Status Page Indicator" },
+      "grc_summary": { "type": "string", "title": "GRC / TPRM Summary" },
+      "b2b_sales_signal": { "type": "string", "title": "B2B Sales Technographic Signal" }
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Vendor Compliance & IAM Audit Overview",
+      "transformation": {
+        "fields": [
+          "domain",
+          "risk_tier",
+          "trust_score",
+          "trust_center_platform",
+          "trust_center_url",
+          "certifications",
+          "identity_providers",
+          "subprocessors",
+          "status_page_indicator",
+          "grc_summary",
+          "b2b_sales_signal"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "domain": { "label": "Domain", "format": "text" },
+          "risk_tier": { "label": "Risk Tier", "format": "text" },
+          "trust_score": { "label": "Trust Score (0-100)", "format": "number" },
+          "trust_center_platform": { "label": "Trust Platform", "format": "text" },
+          "trust_center_url": { "label": "Trust Center URL", "format": "link" },
+          "certifications": { "label": "Certifications", "format": "array" },
+          "identity_providers": { "label": "IdP / Security Stack", "format": "array" },
+          "subprocessors": { "label": "Sub-processors", "format": "array" },
+          "status_page_indicator": { "label": "Status Health", "format": "text" },
+          "grc_summary": { "label": "GRC / TPRM Summary", "format": "text" },
+          "b2b_sales_signal": { "label": "Sales Technographic Signal", "format": "text" }
+        }
+      }
+    }
+  }
+}
