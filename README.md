@@ -1,50 +1,124 @@
-# 🛡️ Trust Center, SOC 2 Compliance & IAM Technographic Auditor
+# 🛡️ Trust Center, SOC 2 Compliance & IAM Security Auditor — MCP Server
 
-Turn a **30-minute manual vendor security review** into a **2-second automated API call**.
+[![tobiaslofton/trust-center-iam-auditor MCP server](https://glama.ai/mcp/servers/tobiaslofton/trust-center-iam-auditor/badges/score.svg)](https://glama.ai/mcp/servers/tobiaslofton/trust-center-iam-auditor)
 
-Give this Actor a list of company domains (e.g., `vanta.com`, `drata.com`, `linear.app`), and it inspects each company's live **Trust Center**, **DNS/TXT security records**, **CNAME routing**, and **Status Page** to generate a complete compliance and technographic dossier.
+A standalone, self-contained **Model Context Protocol (MCP) Server** written in Python (`mcp_server.py`) that enables AI assistants (Claude Desktop, Cursor, Windsurf, Cline, and custom MCP clients) to audit any company domain's live **Trust Center**, **SOC 2 / ISO 27001 / HIPAA certifications**, **AI & cloud sub-processors**, **DNS/TXT Identity & Security stack**, **SPF/DMARC email hardening**, and **Status Page health** directly over local `stdio`.
 
-Built specifically for **GRC / Third-Party Risk Management (TPRM) teams**, **Cybersecurity Sales / RevOps**, and **Clay.com / n8n workflows**.
-
-> 🌐 **Live Benchmark Demo:** Explore our live audit of leading SaaS & AI companies at **[The 2026 B2B SaaS Trust Center, AI Sub-Processor & SSO-Tax Index](https://tobiaslofton.github.io/saas-trust-ai-index/)** (Open-source dataset & n8n templates: [Index Repo](https://github.com/tobiaslofton/saas-trust-ai-index) | [n8n & Clay Workflows Repo](https://github.com/tobiaslofton/n8n-clay-b2b-trust-center-workflows)).
->
-> 💸 **Companion Actor:** Also check out our **[B2B SaaS Pricing Model, PLG & Enterprise SSO-Tax Auditor](https://apify.com/algernontechnologies/saas-pricing-sso-tax-auditor)** to enrich target domains with pricing models, starting price, free tier flags, and SAML/SSO gating.
+Zero third-party API keys or external cloud subscriptions are required. All DNS resolution (`dnspython`) and HTTP Trust Center inspection (`httpx` + `BeautifulSoup4`) execute locally inside the server process.
 
 ---
 
-## 🚀 What Data Does It Extract?
+## 🔧 MCP Tools Provided
+
+This MCP server exposes two tools over JSON-RPC 2.0 `stdio`:
+
+### 1. `audit_vendor_domain`
+Audits a single company domain and returns a structured compliance, sub-processor, and DNS security posture report.
+- **Input Schema:**
+  - `domain` (`string`, required): Company domain to inspect (e.g., `"vanta.com"`, `"drata.com"`, `"linear.app"`).
+
+### 2. `batch_audit_vendor_domains`
+Concurrently audits up to 15 company domains in parallel using asynchronous DNS and HTTP probing.
+- **Input Schema:**
+  - `domains` (`array[string]`, required): List of company domains to inspect concurrently.
+
+---
+
+## 📦 Installation & Local MCP Configuration
+
+### Prerequisites
+- Python 3.11+ (or Docker)
+- Dependencies: `httpx`, `dnspython`, `beautifulsoup4`, `pydantic`
+
+```bash
+git clone https://github.com/tobiaslofton/trust-center-iam-auditor.git
+cd trust-center-iam-auditor
+pip install -r requirements.txt
+```
+
+### Option 1: Claude Desktop / Cursor / Windsurf (`uv` or `python` over `stdio`)
+
+Add the following entry to your `claude_desktop_config.json` or `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "trust-center-iam-auditor": {
+      "command": "python",
+      "args": [
+        "/absolute/path/to/trust-center-iam-auditor/mcp_server.py"
+      ]
+    }
+  }
+}
+```
+
+Or using `uv`:
+
+```json
+{
+  "mcpServers": {
+    "trust-center-iam-auditor": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/absolute/path/to/trust-center-iam-auditor",
+        "run",
+        "python",
+        "mcp_server.py"
+      ]
+    }
+  }
+}
+```
+
+### Option 2: Run via Docker (`stdio`)
+
+Build the local image and connect via `docker run -i`:
+
+```bash
+docker build -t trust-center-iam-auditor .
+```
+
+```json
+{
+  "mcpServers": {
+    "trust-center-iam-auditor": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "trust-center-iam-auditor"
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 🔍 What Signals Does the MCP Server Extract?
 
 | Category | Extracted Signals & Fields |
 | :--- | :--- |
-| **Trust Center Platform** | Detects **Vanta**, **Drata**, **SafeBase**, **Conveyor**, **Secureframe**, **Whistic**, **OneTrust**, **Hyperproof**, or custom Trust Centers + direct URL. |
-| **Compliance Frameworks** | **SOC 2 Type II**, **SOC 3**, **ISO 27001**, **ISO 27701**, **ISO 42001 (AI)**, **HIPAA**, **GDPR**, **PCI-DSS**, **FedRAMP**, **CSA STAR**, **NIST**, **CCPA**. |
-| **DNS Identity & Security Stack** | Detects **Okta**, **Microsoft Entra ID / M365**, **Google Workspace**, **Ping Identity**, **OneLogin**, **Duo**, **1Password**, **Wiz**, **Proofpoint**, **Mimecast**, **KnowBe4**, **Atlassian Cloud**, and **Slack Enterprise**. |
-| **Cloud & AI Sub-processors** | Identifies **AWS**, **Google Cloud (GCP)**, **Azure**, **Snowflake**, **Databricks**, **OpenAI**, **Anthropic**, **Stripe**, **Datadog**, **Cloudflare**, **MongoDB**, **Auth0**, **Vercel**, and more. |
-| **Email & DNS Hardening** | Verifies **SPF**, **DMARC**, MX routing hosts, and Trust/Status subdomain CNAME targets. |
-| **Live Status Page Health** | Queries `status.<domain>` (including Atlassian Statuspage APIs) for real-time operational health. |
-| **Risk Score & Executive Summary** | Calculates a **0–100 Trust Score**, Risk Tier (`LOW`, `MODERATE`, `ELEVATED`), **GRC TPRM Summary**, and **B2B Sales Technographic Signal** (with optional **Gemini 2.5 Flash** AI synthesis). |
+| **Trust Center Platform** | Fingerprints **Vanta**, **Drata**, **SafeBase**, **Conveyor**, **Secureframe**, **Whistic**, **OneTrust**, **Hyperproof**, or custom Trust Centers + direct URL via HTML signatures and `trust.<domain>` / `security.<domain>` CNAME inspection. |
+| **Compliance Frameworks** | Detects **SOC 2 Type II**, **SOC 3**, **ISO 27001**, **ISO 27701**, **ISO 42001 (AI)**, **HIPAA**, **GDPR**, **PCI-DSS**, **FedRAMP**, **CSA STAR**, **NIST CSF / 800-53**, **CCPA / CPRA**. |
+| **DNS Identity & Security Stack** | Inspects root TXT, MX, and CNAME records for **Okta**, **Microsoft Entra ID / M365**, **Google Workspace**, **Ping Identity**, **OneLogin**, **Duo**, **1Password**, **Wiz**, **Proofpoint**, **Mimecast**, **KnowBe4**, **Atlassian Cloud**, and **Slack Enterprise**. |
+| **Cloud & AI Sub-processors** | Identifies disclosed sub-processors including **AWS**, **Google Cloud (GCP)**, **Azure**, **Snowflake**, **Databricks**, **OpenAI**, **Anthropic**, **Stripe**, **Datadog**, **Cloudflare**, **MongoDB**, **Auth0**, and **Vercel**. |
+| **Email & DNS Hardening** | Verifies **SPF** (`v=spf1`), **DMARC** (`_dmarc.<domain>` `v=DMARC1`), MX routing hosts, and subdomain CNAME targets. |
+| **Live Status Page Health** | Probes `status.<domain>` (including Atlassian Statuspage `/api/v2/status.json`) for real-time operational health. |
+| **Risk Score & GRC Summary** | Computes a deterministic **0–100 Trust Score**, Risk Tier (`LOW`, `MODERATE`, `ELEVATED`), **GRC TPRM Summary**, and **Technographic Footprint**. |
 
 ---
 
-## 💼 Top Use Cases
-
-### 1. Automated Vendor Pre-Screening (GRC & Security Teams)
-Before onboarding a new SaaS vendor, run their domain through this Actor to automatically verify whether they publish a live Trust Center, hold active **SOC 2 Type II** or **ISO 27001** certifications, enforce **SPF + DMARC**, and disclose AI sub-processors like **OpenAI** or **Anthropic**.
-
-### 2. High-Intent Technographic Enrichment (Clay.com & B2B Sales)
-Stop sending generic cold emails. Enrich thousands of prospect domains in **Clay.com**, **Make**, or **n8n** to know the exact compliance platform (`Vanta` vs. `Drata` vs. `SafeBase` vs. `None Detected`), Identity Provider (`Okta` vs. `Entra ID`), and cloud stack a prospect uses before reaching out.
-
----
-
-## 📊 Sample Output (Clay & Webhook Ready)
-
-Every output item includes both clean JSON arrays and flat `_csv` strings so you can map columns in **Clay.com**, **Zapier**, or **Google Sheets** with zero formulas:
+## 📊 Example Tool Output (`audit_vendor_domain`)
 
 ```json
 {
   "domain": "vanta.com",
-  "risk_tier": "LOW RISK (Enterprise Ready)",
   "trust_score": 100,
+  "risk_tier": "LOW RISK (Enterprise Ready)",
   "trust_center_platform": "Vanta",
   "trust_center_url": "https://trust.vanta.com",
   "certifications": [
@@ -58,14 +132,6 @@ Every output item includes both clean JSON arrays and flat `_csv` strings so you
     "PCI-DSS",
     "SOC 2 Type II"
   ],
-  "certifications_csv": "CCPA / CPRA, FedRAMP, GDPR, HIPAA, ISO 27001, ISO 42001 (AI), NIST CSF / 800-53, PCI-DSS, SOC 2 Type II",
-  "identity_providers": [
-    "Atlassian Cloud",
-    "Google Workspace",
-    "Microsoft Entra ID / M365",
-    "Slack Enterprise"
-  ],
-  "identity_providers_csv": "Atlassian Cloud, Google Workspace, Microsoft Entra ID / M365, Slack Enterprise",
   "subprocessors": [
     "Amazon Web Services (AWS)",
     "Datadog",
@@ -75,7 +141,12 @@ Every output item includes both clean JSON arrays and flat `_csv` strings so you
     "OpenAI",
     "Snowflake"
   ],
-  "subprocessors_csv": "Amazon Web Services (AWS), Datadog, HubSpot, Intercom, Okta, OpenAI, Snowflake",
+  "identity_providers": [
+    "Atlassian Cloud",
+    "Google Workspace",
+    "Microsoft Entra ID / M365",
+    "Slack Enterprise"
+  ],
   "spf_enabled": true,
   "dmarc_enabled": true,
   "status_page_url": "https://status.vanta.com",
@@ -87,19 +158,6 @@ Every output item includes both clean JSON arrays and flat `_csv` strings so you
 
 ---
 
-## 🤖 Connect as an MCP Server (Claude, Cursor, Antigravity)
+## 📄 License
 
-Give your AI assistant real-time vendor compliance lookup capabilities using the Apify MCP Server:
-
-```json
-{
-  "mcpServers": {
-    "apify-trust-auditor": {
-      "url": "https://mcp.apify.com?actors=AlgernonTechnologies/trust-center-iam-auditor",
-      "headers": {
-        "Authorization": "Bearer YOUR_APIFY_API_TOKEN"
-      }
-    }
-  }
-}
-```
+MIT License — see [LICENSE](LICENSE).
